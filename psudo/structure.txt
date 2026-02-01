@@ -1,0 +1,8 @@
+-Create a share data structure 
+	-time to sleep ,eat ,die
+	-philosophers
+	-mutex == number of philosophers
+	
+-Create threads
+	-for each thread contains specific data of it own
+	-left and right fork
