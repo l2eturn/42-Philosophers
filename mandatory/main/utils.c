@@ -13,6 +13,14 @@
 #include "philosopher.h"
 #include "utils.h"
 
+int	ft_strlen(char *str)
+{
+	int	len;
+	while (str[len])
+		len ++;
+	return (len);
+}
+
 int	ft_isdigit(char c)
 {
 	if (c >= '0' && c <= '9')
@@ -44,4 +52,11 @@ long	ft_atoi(char *str)
 		i ++;
 	}
 	return ((sign) * (res));
+}
+
+void	error_message(char *text, int signal)
+{
+	if (text)
+		write(2, text, ft_strlen(text) + 1);
+	exit(signal);
 }

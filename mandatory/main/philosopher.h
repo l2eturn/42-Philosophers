@@ -17,20 +17,8 @@
 # include <unistd.h>
 # include <stdio.h>
 # include <pthread.h>
-
-typedef struct s_philosopher
-{
-	int				id;
-	int				eat_count;
-	size_t			last_meal;
-
-	pthread_mutex_t	*right_fork;
-	pthread_mutex_t	*left_fork;
-
-	pthread_t		thread;
-
-	t_shared		*shared;
-}				t_philosopher;
+# include <stdbool.h>
+# include <stdlib.h>
 
 typedef struct s_shared
 {
@@ -46,8 +34,21 @@ typedef struct s_shared
 	pthread_mutex_t	stop_mutex;
 	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	*forks;
-
-	t_philosopher	*philos;
 }				t_shared;
+
+typedef struct s_philosopher
+{
+	int				id;
+	int				eat_count;
+	size_t			last_meal;
+
+	pthread_mutex_t	meal_mutex;
+	pthread_mutex_t	*right_fork;
+	pthread_mutex_t	*left_fork;
+
+	pthread_t		thread;
+
+	t_shared		*shared;
+}				t_philosopher;
 
 #endif

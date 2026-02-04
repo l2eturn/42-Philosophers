@@ -16,7 +16,7 @@
 #include <limits.h>
 
 long				ft_atoi(char *str);
-
-
+void                error_message(char *text, int signal);
+int                 ft_strlen(char *str);
 
 #endif
