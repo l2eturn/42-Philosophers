@@ -178,7 +178,7 @@ int main(void)
 
     /* ----- CONFIG (ลองปรับเล่นได้) ----- */
     shared.n = 5;
-    shared.time_to_die = 500;
+    shared.time_to_die = 1000;
     shared.time_to_eat = 200;
     shared.time_to_sleep = 200;
     shared.stop = 0;
