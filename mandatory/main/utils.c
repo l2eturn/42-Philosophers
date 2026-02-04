@@ -16,6 +16,8 @@
 int	ft_strlen(char *str)
 {
 	int	len;
+
+	len = 0;
 	while (str[len])
 		len ++;
 	return (len);
@@ -28,10 +30,10 @@ int	ft_isdigit(char c)
 	return (0);
 }
 
-long	ft_atoi(char *str)
+size_t	ft_atoi(char *str)
 {
 	int		sign;
-	long	res;
+	size_t	res;
 	int		i;
 
 	sign = 1;

@@ -12,11 +12,12 @@
 
 #ifndef PHILOSOPHER_H
 # define PHILOSOPHER_H
-//# define MAX_PHILOSOPHERS 67
-//# define MAX_FORKS		67
+# define MAX_PHILOSOPHERS 6464
+# define MAX_FORKS		6464
 # include <unistd.h>
 # include <stdio.h>
 # include <pthread.h>
+# include <sys/time.h>
 # include <stdbool.h>
 # include <stdlib.h>
 
@@ -29,9 +30,9 @@ typedef struct s_shared
 	size_t			time_to_die;
 	size_t			time_to_eat;
 	size_t			time_to_sleep;
-	size_t			start_time;
 
 	pthread_mutex_t	stop_mutex;
+	pthread_mutex_t	meal_mutex;
 	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	*forks;
 }				t_shared;
@@ -42,7 +43,6 @@ typedef struct s_philosopher
 	int				eat_count;
 	size_t			last_meal;
 
-	pthread_mutex_t	meal_mutex;
 	pthread_mutex_t	*right_fork;
 	pthread_mutex_t	*left_fork;
 
