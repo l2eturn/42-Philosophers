@@ -143,7 +143,7 @@ int main(int ac, char **av)
 	shared_time_init(ac, av, &shared);
 	shared_mutex_init(&shared);
 	forks_init(&shared, forks, numb_philos);
-	philos_init(&philos, &shared, numb_philos);
+	philos_init(philos, &shared, numb_philos);
 	// philos = malloc(sizeof(pthread_t) * numb_philos);
 	// forks = malloc(sizeof(pthread_mutex_t) * numb_philos);
 	printf("time to die: %zu\ntime to eat: %zu\ntime to sleep: %zu\n",shared.time_to_die, 
