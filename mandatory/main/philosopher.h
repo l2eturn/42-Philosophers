@@ -30,6 +30,7 @@ typedef struct s_shared
 	size_t			time_to_die;
 	size_t			time_to_eat;
 	size_t			time_to_sleep;
+	size_t			time_start;
 
 	pthread_mutex_t	stop_mutex;
 	pthread_mutex_t	meal_mutex;
