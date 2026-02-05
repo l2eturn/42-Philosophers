@@ -62,3 +62,25 @@ void	error_message(char *text, int signal)
 		write(2, text, ft_strlen(text) + 1);
 	exit(signal);
 }
+
+//int philos_init(t_shared *s, t_philo **philos)
+//{
+//	int i = 0;
+
+//	*philos = malloc(sizeof(t_philo) * s->num_philos);
+//	if (!*philos)
+//		return (1);
+
+//	while (i < s->num_philos)
+//	{
+//		if (pthread_mutex_init(&(*philos)[i].meal_mutex, NULL) != 0)
+//		{
+//			while (--i >= 0)
+//				pthread_mutex_destroy(&(*philos)[i].meal_mutex);
+//			free(*philos);
+//			return (1);
+//		}
+//		i++;
+//	}
+//	return (0);
+//}

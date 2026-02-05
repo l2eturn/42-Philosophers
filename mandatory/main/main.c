@@ -76,6 +76,24 @@ void	is_valid_input(int ac, char **av)
 	}
 }
 
+void	forks_init(t_shared *shared, pthread_mutex_t *forks,int num_philos)
+{
+	int	i;
+
+	i = 0;
+	while (i < num_philos)
+	{
+		if (pthread_mutex_init(&forks[i], NULL) != 0)
+		{
+			while (--i >= 0)
+				pthread_mutex_destroy(&forks[i]);
+			error_message("Mutex Error\n", 1);
+		}
+		i++;
+	}
+	shared->forks = forks;
+}
+
 int main(int ac, char **av)
 {
 	pthread_t			philos[MAX_PHILOSOPHERS];
@@ -86,7 +104,10 @@ int main(int ac, char **av)
 	is_valid_input(ac, av);
 	numb_philos = (int)ft_atoi(av[1]);
 	shared_time_init(ac, av, &shared);
+	forks_init(&shared, forks, numb_philos);
+	//philos_init();
 	// philos = malloc(sizeof(pthread_t) * numb_philos);
 	// forks = malloc(sizeof(pthread_mutex_t) * numb_philos);
-	printf("time to die: %zu\ntime to eat: %zu\ntime to sleep: %zu\n",shared.time_to_die, shared.time_to_eat, shared.time_to_sleep);
+	printf("time to die: %zu\ntime to eat: %zu\ntime to sleep: %zu\n",shared.time_to_die, 
+		shared.time_to_eat, shared.time_to_sleep);
 }
