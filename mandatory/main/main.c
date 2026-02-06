@@ -203,41 +203,36 @@ void	eat(t_philosopher *p)
 
 void	*routine(void *arg)
 {
-	t_philosopher	*p;
+    t_philosopher   *p;
 
-	p = arg;
-	
-	if (p->shared->num_philos == 1)
-	{
-		pthread_mutex_lock(p->left_fork);
-		safe_print(p, "has taken a fork");
-		general_usleep(p->shared->time_to_die, p->shared);
-		pthread_mutex_unlock(p->left_fork);
-		return (NULL);
-	}
-
-	// เพิ่ม: รีเซ็ต last_meal ทันทีที่เริ่มทำงาน (กันตายก่อนเวลา)
-	pthread_mutex_lock(&p->shared->meal_mutex);
-	p->last_meal = get_time_ms();
-	pthread_mutex_unlock(&p->shared->meal_mutex);
-
+    p = arg;
+    if (p->shared->num_philos == 1)
+    {
+        pthread_mutex_lock(p->left_fork);
+        safe_print(p, "has taken a fork");
+        general_usleep(p->shared->time_to_die, p->shared);
+        pthread_mutex_unlock(p->left_fork);
+        return (NULL);
+    }
+    pthread_mutex_lock(&p->shared->meal_mutex);
+    p->last_meal = get_time_ms();
+    pthread_mutex_unlock(&p->shared->meal_mutex);
 	if (p->id % 2 == 0)
 		usleep(15000);
-
 	while (!is_stop(p->shared))
-	{
+    {
 		eat(p);
 		if (is_stop(p->shared))
 			break;
 		safe_print(p, "is sleeping");
+		general_usleep(p->shared->time_to_sleep, p->shared);
 		if (is_stop(p->shared))
 			break;
-		general_usleep(p->shared->time_to_sleep, p->shared);
 		safe_print(p, "is thinking");
-		if (p->id % 2 != 0)
-			usleep(1000);
-	}
-	return (NULL);
+		if (p->shared->num_philos % 2 != 0) 
+			usleep(3000);
+    }
+    return (NULL);
 }
 
 void	philos_init(t_philosopher *philos, t_shared *shared, int numb_philos)
@@ -283,33 +278,66 @@ void	mornitor_stop(t_shared *s)
 	pthread_mutex_unlock(&s->stop_mutex);
 }
 
-void	*mornitor_routine(void *arg)
-{
-	t_philosopher	*p;
-	int				i;
+//void	*mornitor_routine(void *arg)
+//{
+//	t_philosopher	*p;
+//	int				i;
 
-	p = arg;
-	while (!is_stop(p[0].shared))
-	{
-		i = 0;
-		while (i < p[0].shared -> num_philos)
-		{
-			pthread_mutex_lock(&p[i].shared->meal_mutex);
-			if (get_time_ms() - p[i].last_meal > p[i].shared->time_to_die)
-			{
-				pthread_mutex_lock(&p[i].shared->print_mutex);
-				printf("%zu %d died\n", get_time_ms(), p[i].id);
-				pthread_mutex_unlock(&p[i].shared->print_mutex);
-				pthread_mutex_unlock(&p[i].shared->meal_mutex);
-				mornitor_stop(p[i].shared);
-				return (NULL);
-			}
-			pthread_mutex_unlock(&p[i].shared->meal_mutex);
-			i ++;
-		}
-		usleep(1000);
-	}
-	return (NULL);
+//	p = arg;
+//	while (!is_stop(p[0].shared))
+//	{
+//		i = 0;
+//		while (i < p[0].shared -> num_philos)
+//		{
+//			pthread_mutex_lock(&p[i].shared->meal_mutex);
+//			if (get_time_ms() - p[i].last_meal > p[i].shared->time_to_die)
+//			{
+//				pthread_mutex_lock(&p[i].shared->print_mutex);
+//				printf("%zu %d died\n", get_time_ms(), p[i].id);
+//				pthread_mutex_unlock(&p[i].shared->print_mutex);
+//				pthread_mutex_unlock(&p[i].shared->meal_mutex);
+//				mornitor_stop(p[i].shared);
+//				return (NULL);
+//			}
+//			pthread_mutex_unlock(&p[i].shared->meal_mutex);
+//			i ++;
+//		}
+//		usleep(1000);
+//	}
+//	return (NULL);
+//}
+
+void    *mornitor_routine(void *arg)
+{
+    t_philosopher   *p;
+    int             i;
+    long long       time_diff; // ใช้ long long กันค่าติดลบ
+
+    p = arg;
+    while (!is_stop(p[0].shared))
+    {
+        i = 0;
+        while (i < p[0].shared->num_philos)
+        {
+            pthread_mutex_lock(&p[i].shared->meal_mutex);
+            time_diff = get_time_ms() - p[i].last_meal; // เวลาที่ผ่านไปตั้งแต่มื้อล่าสุด
+            if (time_diff >= p[i].shared->time_to_die)
+            {
+                pthread_mutex_lock(&p[i].shared->print_mutex);
+                // แสดงเวลาตายที่ถูกต้อง (เวลาปัจจุบัน - เวลาเริ่มโปรแกรม)
+                printf("%zu %d died\n", get_time_ms() - p[i].shared->time_start, p[i].id);
+                pthread_mutex_unlock(&p[i].shared->print_mutex);
+                
+                mornitor_stop(p[i].shared);
+                pthread_mutex_unlock(&p[i].shared->meal_mutex);
+                return (NULL);
+            }
+            pthread_mutex_unlock(&p[i].shared->meal_mutex);
+            i++;
+        }
+        usleep(1000); // เช็คทุก 1ms
+    }
+    return (NULL);
 }
 
 int main(int ac, char **av)
