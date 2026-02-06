@@ -175,10 +175,12 @@ void	eat(t_philosopher *p)
 	take_forks(p);
 	pthread_mutex_lock(&p->shared->meal_mutex);
 	p->last_meal = get_time_ms();
+	p->eat_count ++;
+	//if (p->eat_count == p->shared->must_eat)
+	//	p->eat_flag = 1;
 	pthread_mutex_unlock(&p->shared->meal_mutex);
 	safe_print(p, "is eating");
 	general_usleep(p->shared->time_to_eat, p->shared);
-	p->eat_count ++;
 	put_forks(p);
 }
 
@@ -207,19 +209,36 @@ void	*routine(void *arg)
     t_philosopher   *p;
 
     p = arg;
-    if (p->shared->num_philos == 1)
-    {
-        pthread_mutex_lock(p->left_fork);
-        safe_print(p, "has taken a fork");
-        general_usleep(p->shared->time_to_die, p->shared);
-        pthread_mutex_unlock(p->left_fork);
-        return (NULL);
-    }
+    //if (p->shared->num_philos == 1)
+    //{
+    //    pthread_mutex_lock(p->left_fork);
+    //    safe_print(p, "has taken a fork");
+    //    general_usleep(p->shared->time_to_die, p->shared);
+    //    pthread_mutex_unlock(p->left_fork);
+    //    return (NULL);
+    //}
+	if (p->shared->num_philos == 1)
+	{
+		pthread_mutex_lock(p->left_fork);
+		safe_print(p, "has taken a fork");
+		
+		// รอจนกว่าเวลาจะเกินกำหนดตาย (Monitor จะเป็นคนสั่ง stop เอง)
+		general_usleep(p->shared->time_to_die, p->shared); 
+		
+		pthread_mutex_unlock(p->left_fork);
+		
+		// เพิ่มตรงนี้: อย่าเพิ่งรีบจบ ให้รอจนกว่า Monitor จะสั่ง stop จริงๆ
+		// เพื่อให้มั่นใจว่าข้อความ "died" ถูกปริ้นออกมาแล้ว
+		while (!is_stop(p->shared))
+			usleep(100); 
+			
+		return (NULL);
+	}
     pthread_mutex_lock(&p->shared->meal_mutex);
     p->last_meal = get_time_ms();
     pthread_mutex_unlock(&p->shared->meal_mutex);
 	if (p->id % 2 == 0)
-		usleep(15000);
+		usleep(1000);
 	while (!is_stop(p->shared))
     {
 		eat(p);
@@ -345,21 +364,71 @@ void	mornitor_stop(t_shared *s)
 //}
 
 // test
+//void	*mornitor_routine(void *arg)
+//{
+//    t_philosopher   *p;
+//    int             i;
+//    size_t       time_now;
+
+//    p = arg;
+//    while (!is_stop(p[0].shared))
+//    {
+//        i = 0;
+//		if (p[i].shared->eat_flag_count == p[0].shared->num_philos)
+//			return (NULL);
+//        while (i < p[0].shared->num_philos)
+//        {
+//            pthread_mutex_lock(&p[i].shared->meal_mutex);
+//            time_now = get_time_ms();
+//            //(เวลาปัจจุบัน - มื้อสุดท้าย >= เวลาตาย)
+//			//*
+//			if (p[i].eat_flag)
+//			{
+//				p[i].shared->eat_flag_count++;
+//				p[i].eat_flag = 0;
+//			}
+//			//*
+//            if (time_now - p[i].last_meal >= p[i].shared->time_to_die)
+//            {
+//                pthread_mutex_lock(&p[i].shared->print_mutex);
+//                printf("%zu %d died\n", time_now - p[i].shared->time_start, p[i].id);
+//                pthread_mutex_unlock(&p[i].shared->print_mutex);
+                
+//                mornitor_stop(p[i].shared);
+//                pthread_mutex_unlock(&p[i].shared->meal_mutex);
+//                return (NULL);
+//            }
+//            pthread_mutex_unlock(&p[i].shared->meal_mutex);
+//            i++;
+//        }
+//        usleep(1000); 
+//    }
+//    return (NULL);
+//}
+
+// test w/ must_eat include
+
+
 void    *mornitor_routine(void *arg)
 {
     t_philosopher   *p;
     int             i;
-    size_t       time_now;
+    int             finished_eating;
+    size_t			time_now;
 
-    p = arg;
+    p = (t_philosopher *)arg;
     while (!is_stop(p[0].shared))
     {
         i = 0;
+        finished_eating = 0; // รีเซ็ตตัวนับเป็น 0 ทุกครั้งที่เริ่มรอบตรวจใหม่
+        
+        // --- เริ่มเดินตรวจทีละคน ---
         while (i < p[0].shared->num_philos)
         {
             pthread_mutex_lock(&p[i].shared->meal_mutex);
             time_now = get_time_ms();
-            // เช็คว่าตายจริงไหม (เวลาปัจจุบัน - มื้อสุดท้าย >= เวลาตาย)
+
+            // 1. เช็คตาย (Priority สูงสุด)
             if (time_now - p[i].last_meal >= p[i].shared->time_to_die)
             {
                 pthread_mutex_lock(&p[i].shared->print_mutex);
@@ -370,15 +439,30 @@ void    *mornitor_routine(void *arg)
                 pthread_mutex_unlock(&p[i].shared->meal_mutex);
                 return (NULL);
             }
+
+            // 2. เช็คโควต้ากิน
+            // แค่ "นับเพิ่ม" เฉยๆ ครับ ยังไม่สั่งหยุดตรงนี้
+            if (p[i].shared->must_eat != -1 && p[i].eat_count >= p[i].shared->must_eat)
+                finished_eating++;
+            
             pthread_mutex_unlock(&p[i].shared->meal_mutex);
             i++;
         }
-        usleep(1000); 
+        // --- จบการเดินตรวจครบทุกคนแล้ว ---
+
+        // 3. จุดตัดสินใจหยุด (อยู่นอก Loop)
+        // เราจะหยุดก็ต่อเมื่อ "ยอดคนที่กินครบ" == "จำนวนคนทั้งหมด"
+        if (p[0].shared->must_eat != -1 && finished_eating == p[0].shared->num_philos)
+        {
+            mornitor_stop(p[0].shared); // สั่งหยุดทำงานเมื่อครบทุกคนแล้วจริงๆ
+            return (NULL);
+        }
+
+        usleep(1000); // พัก 1ms
     }
     return (NULL);
 }
 
-// test w/ must_eat include
 
 int main(int ac, char **av)
 {
@@ -410,4 +494,17 @@ int main(int ac, char **av)
 	for (int i = 0; i < shared.num_philos; i++)
 		pthread_join(philos[i].thread, NULL);
 	pthread_join(mornitor, NULL);
+	int i = 0;
+    while (i < shared.num_philos)
+    {
+        pthread_mutex_destroy(&forks[i]);
+        i++;
+    }
+
+    // 2. ทำลาย Mutex ส่วนกลาง
+    pthread_mutex_destroy(&shared.print_mutex);
+    pthread_mutex_destroy(&shared.stop_mutex);
+    pthread_mutex_destroy(&shared.meal_mutex);
+
+    return (0);
 }
