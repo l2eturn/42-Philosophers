@@ -239,6 +239,7 @@ void	*routine(void *arg)
     pthread_mutex_unlock(&p->shared->meal_mutex);
 	if (p->id % 2 == 0)
 		usleep(1000);
+		//usleep(15000);
 	while (!is_stop(p->shared))
     {
 		eat(p);
@@ -251,6 +252,8 @@ void	*routine(void *arg)
 		safe_print(p, "is thinking");
 		if (p->shared->num_philos % 2 != 0) 
 			usleep(3000);
+			//usleep((p->shared->time_to_eat * 2) - (p->shared->time_to_sleep));	
+
     }
     return (NULL);
 }
