@@ -112,6 +112,55 @@ int	shared_mutex_init(t_shared *shared)
 	}
 	return (0);
 }
+int	is_stop(t_shared *shared)
+{
+	int	ret;
+
+	pthread_mutex_lock(&shared->stop_mutex);
+	ret = shared->stop;
+	pthread_mutex_unlock(&shared->stop_mutex);
+	return	(ret);
+}
+
+void	take_forks(t_philo *p)
+{
+	if ((p->id) % 2 == 1)
+	{
+		pthread_mutex_lock(p->left_fork);
+		pthread_mutex_lock(p->right_fork);
+	}
+	else
+	{
+		pthread_mutex_lock(p->right_fork);
+		pthread_mutex_lock(p->left_fork);
+	}
+}
+
+void put_forks(t_philo *p)
+{
+	pthread_mutex_unlock(p->left_fork);
+	pthread_mutex_unlock(p->right_fork);
+}
+
+void	eat(t_philo *p)
+{
+	take_forks(p);
+	pthread_mutex_lock(&p->shared->meal_mutex);
+	p->last_meal = get_time_ms();
+	pthread_mutex_unlock(&p.shared->meal_mutex);
+
+	put_forks(p);
+}
+
+void	*routine(void *arg)
+{
+	t_philosopher *p
+
+	p = arg;
+	printf("print from philo(s) ID : %d\n", p->id);
+	usleep(2);
+	return (NULL);
+}
 
 void	philos_init(t_philosopher *philos, t_shared *shared, int numb_philos)
 {
@@ -131,11 +180,39 @@ void	philos_init(t_philosopher *philos, t_shared *shared, int numb_philos)
 	}
 }
 
+int	philos_create_threads(t_philosopher *philos, int numb_philos)
+{
+	int	i;
+
+	i = 0;
+	while (i < numb_philos)
+	{
+		if (pthread_create(&philos[i].thread, NULL, routine, &philos[i]) != 0)
+		{
+			while (--i >= 0)
+				pthread_join(philos[i].thread, NULL);
+			return (1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+void	*mornitor_routine(void *arg)
+{
+	t_philosopher	*p;
+
+	p = arg;
+
+	return (NULL);
+}
+
 int main(int ac, char **av)
 {
 	t_philosopher		philos[MAX_PHILOSOPHERS];
 	pthread_mutex_t		forks[MAX_FORKS];
 	t_shared			shared;
+	pthread_t			mornitor;
 	int					numb_philos;
 
 	is_valid_input(ac, av);
@@ -144,10 +221,16 @@ int main(int ac, char **av)
 	shared_mutex_init(&shared);
 	forks_init(&shared, forks, numb_philos);
 	philos_init(philos, &shared, numb_philos);
+	philos_create_threads(philos, numb_philos);
 	// philos = malloc(sizeof(pthread_t) * numb_philos);
 	// forks = malloc(sizeof(pthread_mutex_t) * numb_philos);
 	printf("time to die: %zu\ntime to eat: %zu\ntime to sleep: %zu\n",shared.time_to_die, 
 		shared.time_to_eat, shared.time_to_sleep);
+	//error test
 	for (int i = 0; i < numb_philos ; i++)
 		printf("Philo(s) ID: %d\n", philos[i].id);
+
+	//pid and thread numbers check;
+	for (int i = 0; i < numb_philos ; i++)
+		pthread_join(philos[i].thread,NULL);
 }

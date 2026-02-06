@@ -1,7 +1,7 @@
 [/ ] init function returnable
 [/] forks_init สมบูรณ์
 [/] philos_init
-[] pthread_create / join
+[/] pthread_create / join
 [ ] routine skeleton
 [ ] print_mutex
 [ ] stop flag
