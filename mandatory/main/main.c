@@ -137,9 +137,12 @@ void	general_usleep(size_t gen_time, t_shared *s)
 
 void safe_print(t_philosopher *p, char *msg)
 {
+	size_t time;
+
 	pthread_mutex_lock(&p->shared->print_mutex);
+	time = get_time_ms() - p->shared->time_start;
 	if (!is_stop(p->shared))
-		printf("%zu %d %s\n", get_time_ms(), p->id, msg);
+		printf("%zu %d %s\n", time, p->id, msg);
 	pthread_mutex_unlock(&p->shared->print_mutex);
 }
 
@@ -148,12 +151,16 @@ void	take_forks(t_philosopher *p)
 	if ((p->id) % 2 == 1)
 	{
 		pthread_mutex_lock(p->left_fork);
+		safe_print(p, "has taken a fork");
 		pthread_mutex_lock(p->right_fork);
+		safe_print(p, "has taken a fork");
 	}
 	else
 	{
 		pthread_mutex_lock(p->right_fork);
+		safe_print(p, "has taken a fork");
 		pthread_mutex_lock(p->left_fork);
+		safe_print(p, "has taken a fork");
 	}
 }
 
@@ -175,21 +182,60 @@ void	eat(t_philosopher *p)
 }
 
 // 1 ตัว
+//void	*routine(void *arg)
+//{
+//	t_philosopher	*p;
+
+//	p = arg;
+//	if (p->id % 2 == 0)
+//		usleep(1000);
+//	while (!is_stop(p->shared))
+//	{
+//		eat(p);
+//		if (is_stop(p->shared))
+//			break;
+//		safe_print(p, "is sleeping");
+//		general_usleep(p->shared->time_to_sleep, p->shared);
+//		safe_print(p, "is thinking");
+//	}
+//	return (NULL);
+//}
+
 void	*routine(void *arg)
 {
 	t_philosopher	*p;
 
 	p = arg;
+	
+	if (p->shared->num_philos == 1)
+	{
+		pthread_mutex_lock(p->left_fork);
+		safe_print(p, "has taken a fork");
+		general_usleep(p->shared->time_to_die, p->shared);
+		pthread_mutex_unlock(p->left_fork);
+		return (NULL);
+	}
+
+	// เพิ่ม: รีเซ็ต last_meal ทันทีที่เริ่มทำงาน (กันตายก่อนเวลา)
+	pthread_mutex_lock(&p->shared->meal_mutex);
+	p->last_meal = get_time_ms();
+	pthread_mutex_unlock(&p->shared->meal_mutex);
+
 	if (p->id % 2 == 0)
-		usleep(1000);
+		usleep(15000);
+
 	while (!is_stop(p->shared))
 	{
 		eat(p);
 		if (is_stop(p->shared))
 			break;
 		safe_print(p, "is sleeping");
+		if (is_stop(p->shared))
+			break;
 		general_usleep(p->shared->time_to_sleep, p->shared);
 		safe_print(p, "is thinking");
+		if (p->id % 2 != 0)
+			usleep(1000);
 	}
 	return (NULL);
 }
