@@ -411,7 +411,6 @@ void	mornitor_stop(t_shared *s)
 
 // test w/ must_eat include
 
-
 void    *mornitor_routine(void *arg)
 {
     t_philosopher   *p;
