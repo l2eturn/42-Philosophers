@@ -180,6 +180,8 @@ void	*routine(void *arg)
 	t_philosopher	*p;
 
 	p = arg;
+	if (p->id % 2 == 0)
+		usleep(1000);
 	while (!is_stop(p->shared))
 	{
 		eat(p);

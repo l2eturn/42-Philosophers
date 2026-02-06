@@ -2,7 +2,14 @@
 [/] forks_init สมบูรณ์
 [/] philos_init
 [/] pthread_create / join
-[ ] routine skeleton
-[ ] print_mutex
-[ ] stop flag
-[ ] death monitor
+[/] routine skeleton
+[/] print_mutex
+[/] stop flag
+[/] death monitor
+
+problem ตอนนี้
+
+philos 1 == zomebie case;
+ยังไม่ทำ eat count
+ยังไม่ drestroy mutex
+
