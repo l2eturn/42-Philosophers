@@ -291,4 +291,7 @@ int main(int ac, char **av)
 	////pid and thread numbers check;
 	//for (int i = 0; i < numb_philos ; i++)
 	//	pthread_join(philos[i].thread,NULL);
+	for (int i = 0; i < shared.num_philos; i++)
+		pthread_join(philos[i].thread, NULL);
+	pthread_join(mornitor, NULL);
 }
