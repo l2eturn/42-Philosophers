@@ -32,8 +32,9 @@ void	is_valid_input(int ac, char **av)
 {
 	int		i;
 	long	num;
+
 	i = 1;
-	if ((ac != 5) && (ac != 6)) 
+	if ((ac != 5) && (ac != 6))
 		error_message("Argument Count Error1\n", 1);
 	while (i < ac)
 	{
@@ -44,13 +45,13 @@ void	is_valid_input(int ac, char **av)
 			error_message("Invalid Input Format2\n", 1);
 		else if (i == 5 && (num < 0 || num > INT_MAX))
 			error_message("Invalid Input Format3\n", 1);
-		else if ((i != 1) &&  (i != 5) && (num < 1 || num > INT_MAX))			
-			error_message("Invalid Input Format4\n", 1);		
-		i ++;	
+		else if ((i != 1) && (i != 5) && (num < 1 || num > INT_MAX))
+			error_message("Invalid Input Format4\n", 1);
+		i ++;
 	}
 }
 
-int main(int ac, char **av)
+int	main(int ac, char **av)
 {
 	t_philosopher		philos[MAX_PHILOSOPHERS];
 	pthread_mutex_t		forks[MAX_FORKS];

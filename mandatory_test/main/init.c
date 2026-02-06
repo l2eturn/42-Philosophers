@@ -19,7 +19,6 @@ void	shared_time_init(int ac, char **av, t_shared *shared)
 	shared->time_to_eat = ft_atoi(av[3]);
 	shared->time_to_sleep = ft_atoi(av[4]);
 	shared->time_start = get_time_ms();
-
 	shared->must_eat = -1;
 	if (ac == 6)
 		shared->must_eat = ft_atoi(av[5]);
@@ -44,7 +43,7 @@ int	shared_mutex_init(t_shared *shared)
 	return (0);
 }
 
-void	forks_init(t_shared *shared, pthread_mutex_t *forks,int num_philos)
+void	forks_init(t_shared *shared, pthread_mutex_t *forks, int num_philos)
 {
 	int	i;
 
@@ -72,7 +71,6 @@ void	philos_init(t_philosopher *philos, t_shared *shared, int numb_philos)
 		philos[i].id = i + 1;
 		philos[i].eat_count = 0;
 		philos[i].last_meal = shared->time_start;
-
 		philos[i].left_fork = &shared->forks[i];
 		philos[i].right_fork = &shared->forks[(i + 1) % numb_philos];
 		philos[i].shared = shared;

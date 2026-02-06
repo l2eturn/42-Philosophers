@@ -19,9 +19,10 @@ void	mornitor_stop(t_shared *s)
 	pthread_mutex_unlock(&s->stop_mutex);
 }
 
-size_t get_time_ms(void)
+size_t	get_time_ms(void)
 {
-	struct timeval tv;
+	struct timeval	tv;
+
 	gettimeofday(&tv, NULL);
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
@@ -34,14 +35,14 @@ void	general_usleep(size_t gen_time, t_shared *s)
 	while (!is_stop(s))
 	{
 		if (get_time_ms() - start >= gen_time)
-			break;
+			break ;
 		usleep(1000);
 	}
 }
 
 void	safe_print(t_philosopher *p, char *msg)
 {
-	size_t time;
+	size_t	time;
 
 	pthread_mutex_lock(&p->shared->print_mutex);
 	time = get_time_ms() - p->shared->time_start;
@@ -57,5 +58,5 @@ int	is_stop(t_shared *shared)
 	pthread_mutex_lock(&shared->stop_mutex);
 	ret = shared->stop;
 	pthread_mutex_unlock(&shared->stop_mutex);
-	return	(ret);
+	return (ret);
 }

@@ -30,7 +30,7 @@ void	take_forks(t_philosopher *p)
 	}
 }
 
-void put_forks(t_philosopher *p)
+void	put_forks(t_philosopher *p)
 {
 	pthread_mutex_unlock(p->left_fork);
 	pthread_mutex_unlock(p->right_fork);
