@@ -129,32 +129,21 @@ void	general_usleep(size_t gen_time, t_shared *s)
 	start = get_time_ms();
 	while (!is_stop(s))
 	{
-		if (get_time_ms - start >= gen_time)
+		if (get_time_ms() - start >= gen_time)
 			break;
 		usleep(1000);
 	}
 }
 
-void safe_print(t_philo *p, char *msg)
+void safe_print(t_philosopher *p, char *msg)
 {
 	pthread_mutex_lock(&p->shared->print_mutex);
-	if (!is_stopped(p->shared))
+	if (!is_stop(p->shared))
 		printf("%zu %d %s\n", get_time_ms(), p->id, msg);
 	pthread_mutex_unlock(&p->shared->print_mutex);
 }
 
-void	eat(t_philo *p)
-{
-	take_forks(p);
-	pthread_mutex_lock(&p->shared->meal_mutex);
-	p->last_meal = get_time_ms();
-	pthread_mutex_unlock(&p.shared->meal_mutex);
-	safe_print(p, "is eating");
-	general_usleep(p->shared->time_to_eat, p->shared);
-	put_forks(p);
-}
-
-void	take_forks(t_philo *p)
+void	take_forks(t_philosopher *p)
 {
 	if ((p->id) % 2 == 1)
 	{
@@ -168,16 +157,27 @@ void	take_forks(t_philo *p)
 	}
 }
 
-void put_forks(t_philo *p)
+void put_forks(t_philosopher *p)
 {
 	pthread_mutex_unlock(p->left_fork);
 	pthread_mutex_unlock(p->right_fork);
 }
 
+void	eat(t_philosopher *p)
+{
+	take_forks(p);
+	pthread_mutex_lock(&p->shared->meal_mutex);
+	p->last_meal = get_time_ms();
+	pthread_mutex_unlock(&p->shared->meal_mutex);
+	safe_print(p, "is eating");
+	general_usleep(p->shared->time_to_eat, p->shared);
+	put_forks(p);
+}
+
 // 1 ตัว
 void	*routine(void *arg)
 {
-	t_philosopher *p
+	t_philosopher	*p;
 
 	p = arg;
 	while (!is_stop(p->shared))
@@ -230,9 +230,9 @@ int	philos_create_threads(t_philosopher *philos, int numb_philos)
 
 void	mornitor_stop(t_shared *s)
 {
-	pthread_mutex_lock(&shared->stop_mutex);
-	shared->stop = 1;
-	pthread_mutex_unlock(&shared->stop_mutex);
+	pthread_mutex_lock(&s->stop_mutex);
+	s->stop = 1;
+	pthread_mutex_unlock(&s->stop_mutex);
 }
 
 void	*mornitor_routine(void *arg)
@@ -246,17 +246,17 @@ void	*mornitor_routine(void *arg)
 		i = 0;
 		while (i < p[0].shared -> num_philos)
 		{
-			pthread_mutex_lock(&p[i].meal_mutex);
+			pthread_mutex_lock(&p[i].shared->meal_mutex);
 			if (get_time_ms() - p[i].last_meal > p[i].shared->time_to_die)
 			{
 				pthread_mutex_lock(&p[i].shared->print_mutex);
 				printf("%zu %d died\n", get_time_ms(), p[i].id);
 				pthread_mutex_unlock(&p[i].shared->print_mutex);
-				pthread_mutex_unlock(&p[i].meal_mutex);
+				pthread_mutex_unlock(&p[i].shared->meal_mutex);
 				mornitor_stop(p[i].shared);
 				return (NULL);
 			}
-			pthread_mutex_unlock(&p[i].meal_mutex);
+			pthread_mutex_unlock(&p[i].shared->meal_mutex);
 			i ++;
 		}
 		usleep(1000);
@@ -282,13 +282,13 @@ int main(int ac, char **av)
 	pthread_create(&mornitor, NULL, mornitor_routine, philos);
 	// philos = malloc(sizeof(pthread_t) * numb_philos);
 	// forks = malloc(sizeof(pthread_mutex_t) * numb_philos);
-	printf("time to die: %zu\ntime to eat: %zu\ntime to sleep: %zu\n",shared.time_to_die, 
-		shared.time_to_eat, shared.time_to_sleep);
-	//error test
-	for (int i = 0; i < numb_philos ; i++)
-		printf("Philo(s) ID: %d\n", philos[i].id);
+	//printf("time to die: %zu\ntime to eat: %zu\ntime to sleep: %zu\n",shared.time_to_die, 
+	//	shared.time_to_eat, shared.time_to_sleep);
+	////error test
+	//for (int i = 0; i < numb_philos ; i++)
+	//	printf("Philo(s) ID: %d\n", philos[i].id);
 
-	//pid and thread numbers check;
-	for (int i = 0; i < numb_philos ; i++)
-		pthread_join(philos[i].thread,NULL);
+	////pid and thread numbers check;
+	//for (int i = 0; i < numb_philos ; i++)
+	//	pthread_join(philos[i].thread,NULL);
 }
