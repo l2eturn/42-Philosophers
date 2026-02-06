@@ -178,6 +178,7 @@ void	eat(t_philosopher *p)
 	pthread_mutex_unlock(&p->shared->meal_mutex);
 	safe_print(p, "is eating");
 	general_usleep(p->shared->time_to_eat, p->shared);
+	p->eat_count ++;
 	put_forks(p);
 }
 
@@ -307,11 +308,48 @@ void	mornitor_stop(t_shared *s)
 //	return (NULL);
 //}
 
+
+// wrong output cause : in clude must_eat in the same function of time_to_die ; so fix it later , most of it perfectlu fine btw
+
+//void    *mornitor_routine(void *arg)
+//{
+//    t_philosopher   *p;
+//    int             i;
+//    size_t       time_now;
+
+//    p = arg;
+//    while (!is_stop(p[0].shared))
+//    {
+//        i = 0;
+//        while (i < p[0].shared->num_philos)
+//        {
+//            pthread_mutex_lock(&p[i].shared->meal_mutex);
+//            time_now = get_time_ms();
+//            //(เวลาปัจจุบัน - มื้อสุดท้าย >= เวลาตาย)
+//            if (time_now - p[i].last_meal >= p[i].shared->time_to_die || p->eat_count == p->shared->must_eat)
+//            {
+//                pthread_mutex_lock(&p[i].shared->print_mutex);
+//                printf("%zu %d died\n", time_now - p[i].shared->time_start, p[i].id);
+//                pthread_mutex_unlock(&p[i].shared->print_mutex);
+                
+//                mornitor_stop(p[i].shared);
+//                pthread_mutex_unlock(&p[i].shared->meal_mutex);
+//                return (NULL);
+//            }
+//            pthread_mutex_unlock(&p[i].shared->meal_mutex);
+//            i++;
+//        }
+//        usleep(1000); 
+//    }
+//    return (NULL);
+//}
+
+// test
 void    *mornitor_routine(void *arg)
 {
     t_philosopher   *p;
     int             i;
-    long long       time_diff; // ใช้ long long กันค่าติดลบ
+    size_t       time_now;
 
     p = arg;
     while (!is_stop(p[0].shared))
@@ -320,12 +358,12 @@ void    *mornitor_routine(void *arg)
         while (i < p[0].shared->num_philos)
         {
             pthread_mutex_lock(&p[i].shared->meal_mutex);
-            time_diff = get_time_ms() - p[i].last_meal; // เวลาที่ผ่านไปตั้งแต่มื้อล่าสุด
-            if (time_diff >= p[i].shared->time_to_die)
+            time_now = get_time_ms();
+            // เช็คว่าตายจริงไหม (เวลาปัจจุบัน - มื้อสุดท้าย >= เวลาตาย)
+            if (time_now - p[i].last_meal >= p[i].shared->time_to_die)
             {
                 pthread_mutex_lock(&p[i].shared->print_mutex);
-                // แสดงเวลาตายที่ถูกต้อง (เวลาปัจจุบัน - เวลาเริ่มโปรแกรม)
-                printf("%zu %d died\n", get_time_ms() - p[i].shared->time_start, p[i].id);
+                printf("%zu %d died\n", time_now - p[i].shared->time_start, p[i].id);
                 pthread_mutex_unlock(&p[i].shared->print_mutex);
                 
                 mornitor_stop(p[i].shared);
@@ -335,10 +373,12 @@ void    *mornitor_routine(void *arg)
             pthread_mutex_unlock(&p[i].shared->meal_mutex);
             i++;
         }
-        usleep(1000); // เช็คทุก 1ms
+        usleep(1000); 
     }
     return (NULL);
 }
+
+// test w/ must_eat include
 
 int main(int ac, char **av)
 {
