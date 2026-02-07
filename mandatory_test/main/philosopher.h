@@ -53,12 +53,17 @@ typedef struct s_philosopher
 	t_shared		*shared;
 }				t_philosopher;
 
+// --- main_helper.c ---
+void				main_helper(t_shared *shared, t_philosopher *philos,
+						pthread_mutex_t *forks, int numb_philos);
+void				cleanup_program(t_shared *shared, pthread_mutex_t *forks);
+
 // --- init.c ---
 void				shared_time_init(int ac, char **av, t_shared *shared);
 int					shared_mutex_init(t_shared *shared);
 void				forks_init(t_shared *shared, pthread_mutex_t *forks, int n);
 void				philos_init(t_philosopher *p, t_shared *shared, int n);
-int				philos_create_threads(t_philosopher *p, int n);
+int					philos_create_threads(t_philosopher *p, int n);
 
 // --- routines.c ---
 void				*routine(void *arg);

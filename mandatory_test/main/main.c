@@ -57,29 +57,15 @@ int	main(int ac, char **av)
 	pthread_mutex_t		forks[MAX_FORKS];
 	t_shared			shared;
 	pthread_t			mornitor;
-	int					numb_philos;
+	int					i;
 
 	is_valid_input(ac, av);
-	numb_philos = (int)ft_atoi(av[1]);
 	shared_time_init(ac, av, &shared);
-	shared_mutex_init(&shared);
-	forks_init(&shared, forks, numb_philos);
-	philos_init(philos, &shared, numb_philos);
-	philos_create_threads(philos, numb_philos);
+	main_helper(&shared, philos, forks, ft_atoi(av[1]));
 	pthread_create(&mornitor, NULL, mornitor_routine, philos);
-
-	for (int i = 0; i < shared.num_philos; i++)
-		pthread_join(philos[i].thread, NULL);
+	while (i < shared.num_philos)
+		pthread_join(philos[i++].thread, NULL);
 	pthread_join(mornitor, NULL);
-	int i = 0;
-    while (i < shared.num_philos)
-    {
-        pthread_mutex_destroy(&forks[i]);
-        i++;
-    }
-    pthread_mutex_destroy(&shared.print_mutex);
-    pthread_mutex_destroy(&shared.stop_mutex);
-    pthread_mutex_destroy(&shared.meal_mutex);
-
-    return (0);
+	cleanup_program(&shared, forks);
+	return (0);
 }
