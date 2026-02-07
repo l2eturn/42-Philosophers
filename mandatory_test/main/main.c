@@ -63,6 +63,7 @@ int	main(int ac, char **av)
 	shared_time_init(ac, av, &shared);
 	main_helper(&shared, philos, forks, ft_atoi(av[1]));
 	pthread_create(&mornitor, NULL, mornitor_routine, philos);
+	i = 0;
 	while (i < shared.num_philos)
 		pthread_join(philos[i++].thread, NULL);
 	pthread_join(mornitor, NULL);

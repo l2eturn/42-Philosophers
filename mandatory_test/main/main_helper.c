@@ -15,9 +15,18 @@
 void	main_helper(t_shared *shared, t_philosopher *philos,
 			pthread_mutex_t *forks, int numb_philos)
 {
+	int			i;
+
 	shared_mutex_init(shared);
 	forks_init(shared, forks, numb_philos);
 	philos_init(philos, shared, numb_philos);
+	shared->time_start = get_time_ms();
+	i = 0;
+	while (i < numb_philos)
+	{
+		philos[i].last_meal = shared->time_start;
+		i ++;
+	}
 	philos_create_threads(philos, numb_philos);
 }
 
