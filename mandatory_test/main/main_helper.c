@@ -32,7 +32,7 @@ void	main_helper(t_shared *shared, t_philosopher *philos,
 
 void	cleanup_program(t_shared *shared, pthread_mutex_t *forks)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (i < shared->num_philos)

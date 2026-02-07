@@ -12,20 +12,6 @@
 
 #include "philosopher.h"
 
-/* ************************************************************************** */
-/* */
-/* :::      ::::::::   */
-/* routines.c                                         :+:      :+:    :+:   */
-/* +:+ +:+         +:+     */
-/* By: slimvutt <slimvut@fpgij;dgj;ds.com>        +#+  +:+       +#+        */
-/* +#+#+#+#+#+   +#+           */
-/* Created: 2026/02/06 23:51:41 by slimvutt          #+#    #+#             */
-/* Updated: 2026/02/07 14:45:00 by slimvutt         ###   ########.fr       */
-/* */
-/* ************************************************************************** */
-
-#include "philosopher.h"
-
 static void	*one_philo_routine(t_philosopher *p)
 {
 	pthread_mutex_lock(p->left_fork);
@@ -45,7 +31,13 @@ static void	philo_sleep_think(t_philosopher *p)
 		return ;
 	safe_print(p, "is thinking");
 	if (p->shared->num_philos % 2 != 0)
-		general_usleep(p->shared->time_to_eat / 2, p->shared);
+	{
+		if (p->shared->time_to_eat > p->shared->time_to_sleep)
+			general_usleep((p->shared->time_to_eat - p->shared->time_to_sleep),
+				p->shared);
+		else
+			usleep(500);
+	}
 }
 
 void	*routine(void *arg)
@@ -78,11 +70,11 @@ static int	check_death(t_philosopher *p, int *finished)
 	time = get_time_ms();
 	if (time - p->last_meal >= p->shared->time_to_die)
 	{
+		pthread_mutex_unlock(&p->shared->meal_mutex);
 		pthread_mutex_lock(&p->shared->print_mutex);
 		mornitor_stop(p->shared);
 		printf("%zu %d died\n", time - p->shared->time_start, p->id);
 		pthread_mutex_unlock(&p->shared->print_mutex);
-		pthread_mutex_unlock(&p->shared->meal_mutex);
 		return (1);
 	}
 	if (p->shared->must_eat != -1 && p->eat_count >= p->shared->must_eat)
