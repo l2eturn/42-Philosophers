@@ -157,7 +157,7 @@ void	*routine(void *arg)
 	{
 		eat(p);
 		safe_print(p, "is sleeping");
-		general_usleep(p->shared->time_to_sleep, p->shared);
+		general_usleep(p->shared->time_to_sleep * 2, p->shared);
 		safe_print(p, "is thinking");
 		if (p->shared->num_philos % 2 != 0)
 			usleep(1000);
@@ -181,7 +181,7 @@ void	*mornitor_routine(void *arg)
 		}
 		if (check_all_ate(p))
 			return (NULL);
-		usleep(1000);
+		usleep(500);
 	}
 	return (NULL);
 }
