@@ -1,2 +1,2 @@
 # 42-Philosophers
-I hate snicker
+learming about multithread
